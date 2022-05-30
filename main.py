@@ -2,7 +2,6 @@ import datetime
 import jsonpath
 import json
 import pymysql
-
 import requests
 
 # 请求头
@@ -17,8 +16,11 @@ yesterday = datetime.date.today() - datetime.timedelta(days=2)
 
 # 创建数据库连接
 def create_conn():
-	# 创建链接对象
-	conn = pymysql.connect(user='fayewong', password='4012', host='124.222.30.249', database='covid-19_data', port=3306,
+	# 创建链接对象:云端数据库
+	# conn = pymysql.connect(user='fayewong', password='4012', host='124.222.30.249', database='covid-19_data', port=3306,
+	#                        charset="utf8")
+	# 创建链接对象:云端数据库
+	conn = pymysql.connect(user='root', password='4012', host='127.0.0.1', database='covid-19_data', port=3306,
 	                       charset="utf8")
 	# 创建游标对象
 	curs = conn.cursor()
@@ -31,26 +33,38 @@ def close_conn(conn, curs):
 	curs.close()
 
 
+# 发送请求解析数据
 def get_json_data():
 	# 发送请求获取json数据
-	resp = requests.get(data_api, headers=headers_)
-	content = resp.content
-	# with open('./1.json', 'rb') as r:
-	# 	content = r.read()
-
+	# resp = requests.get(data_api, headers=headers_)
+	# content = resp.content
+	with open('./1.json', 'rb') as r:
+		content = r.read()
 	# 将数据序列化成json对象
 	data = json.loads(content)
-	# 使用jsonpath解析:解析各个国家的数据
-	areaTree = jsonpath.jsonpath(data, '$..areaTree')[0]
-	# 调用获取国家级疫情数据的函数
-	get_country_data(areaTree)
+	# # 使用jsonpath解析:解析各个国家的数据
+	# areaTree_country = jsonpath.jsonpath(data, '$..areaTree')[0]
+	# 使用jsonpath解析:解析国内各个省自治区直辖市数据
+	areaTree_province = jsonpath.jsonpath(data, '$..areaTree')[0][2]
+	# # 调用获取国家级疫情数据的函数
+	# get_country_data(areaTree_country)
+	# 调用获取国内省级疫情数据的函数
+	get_province_data(areaTree_province)
+
+
+# 获取省级疫情数据
+def get_province_data(areaTree_province):
+	# 连接数据库获取游标对象
+	conn, curs = create_conn()
+	for province in areaTree_province:
+		print(province[''])
 
 
 # 获取国家级疫情数据
-def get_country_data(areaTree):
+def get_country_data(areaTree_country):
 	# 链接数据库获取游标对象
 	conn, curs = create_conn()
-	for country in areaTree:
+	for country in areaTree_country:
 		lastUpdateTime = jsonpath.jsonpath(country, '$.lastUpdateTime')[0]
 		name = jsonpath.jsonpath(country, '$.name')[0]
 		uni = str(name) + str(lastUpdateTime).split(' ')[0]
