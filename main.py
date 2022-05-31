@@ -11,7 +11,7 @@ headers_ = {
 # 数据接口
 data_api = 'https://c.m.163.com/ug/api/wuhan/app/data/list-total'
 # 获取昨天的日期
-yesterday = datetime.date.today() - datetime.timedelta(days=2)
+today = datetime.date.today()
 
 
 # 创建数据库连接
